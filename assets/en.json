@@ -1,0 +1,13 @@
+{
+  "language": "Hey there! Welcome to the official Waves.Exchange bot.\nTo start with, select the language are more comfortable with\uD83D\uDC47",
+  "start": "Привет",
+  "aboutBtn": "О бирже",
+  "startBtn": "Погнале",
+  "address": "Введи адрес",
+  "invalidAddress": "Некорректный адрес",
+  "wait": "Проверяю...",
+  "notEnoughMoney": "Мало денек",
+  "stakeRequired": "Не застейкано",
+  "congratulations": "Все ок ты \u2028учавствуешь",
+  "alreadyParticipating": "Ты уже \u2028учавствуешь"
+}

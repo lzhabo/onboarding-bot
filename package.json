@@ -1,0 +1,31 @@
+{
+  "name": "waves_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "watch": "nodemon --watch './' --ignore 'src/**/*.spec.ts' --exec 'ts-node' ./index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "chlenc",
+  "license": "ISC",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "dependencies": {
+    "@types/node-telegram-bot-api": "^0.31.0",
+    "@waves/ts-lib-crypto": "^1.4.3",
+    "axios": "^0.19.2",
+    "dotenv": "^7.0.0",
+    "firebase": "^7.5.0",
+    "memory-cache": "^0.2.0",
+    "node-telegram-bot-api": "^0.30.0",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  }
+}
