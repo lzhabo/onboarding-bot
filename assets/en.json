@@ -1,13 +1,21 @@
 {
-  "language": "Hey there! Welcome to the official Waves.Exchange bot.\nTo start with, select the language are more comfortable with\uD83D\uDC47",
-  "start": "Привет",
-  "aboutBtn": "О бирже",
-  "startBtn": "Погнале",
-  "address": "Введи адрес",
-  "invalidAddress": "Некорректный адрес",
-  "wait": "Проверяю...",
-  "notEnoughMoney": "Мало денек",
-  "stakeRequired": "Не застейкано",
-  "congratulations": "Все ок ты \u2028учавствуешь",
-  "alreadyParticipating": "Ты уже \u2028учавствуешь"
+  "language": "Hi there!\nSelect your language\uD83D\uDC47",
+  "start": "
+Welcome to the official Waves.Exchange Telegram bot. Waves.Exchange is a hybrid crypto assets exchange that allows users to transfer, trade, issue and stake cryptocurrencies. The platform combines the security of decentralized systems with features and advantages of conventional centralized exchanges.
+Take part in our super combo: get 1 USDN cashback for staking 10 USDN + a weekly draw for 100 USDN!”
+To participate you must complete the following steps:
+1. Buy at least 10 USDN using your card here: https://waves.exchange/staking
+2. Stake at least 10 USDN purchased with the card before April 20, 11:00 (UTC +3)
+3. Click the “Participate” button under this message.
+After registration, you will receive 1 USDN cashback for each Waves account with 10 USDN within 24 hours. In addition, we will hold a 100 USDN prize draw every week for the entire month. Let’s go!
+   "aboutBtn": "About the exchange",
+   "startBtn": "Register",
+   "address": "Enter your address on the Waves.Exchange to participate in the cashback campaign and the 100 USDN draw”
+   "invalidAddress": "The address does not exist or is entered incorrectly. Please try again.”,
+   "wait": "Checking",
+   "notEnoughMoney": "You have not purchased USDN with a card. This is a mandatory condition for participation. Please try again.”,
+   "stakeRequired": "Your address does not have any staked USDN or there are less than 10 USDN locked in staking. Please try again.” ,
+   "congratulations": " You have successfully registered for the Waves.Exchange contest and cashback campaign! You should receive your bonus soon, and the first winner will be announced in a week! Stay in touch!",
+   "alreadyParticipating": " You are already registered in the cashback campaign. The next 100 USDN prize draw will happen within a week!”
+
 }
