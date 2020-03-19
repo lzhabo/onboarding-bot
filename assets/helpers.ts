@@ -40,7 +40,8 @@ export async function checkBoughtUSDN(address: string): Promise<boolean> {
     recipient=${address}&
     assetId=DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p&
     sort=desc&
-    limit=100` // + 'timeStart=1584604800000&timeEnd=1587369600000&';
+    timeStart=1584604800000&timeEnd=1587369600000&
+    limit=100` ;
     const res = (await axios.get(url)).data.data;
     return res.some(({data: {amount}}: any) => +amount >= 10);
 }

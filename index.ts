@@ -16,7 +16,7 @@ require('dotenv').config();
 const bot = new TelegramBot(process.env.TOKEN, {polling: true});
 
 bot.onText(/\/start/, ({chat: {id}}) => {
-    bot.sendMessage(id, phrase('en', 'alreadyParticipating'), langKey);
+    bot.sendMessage(id, phrase('en', 'language'), langKey);
 });
 
 bot.on('message', async (msg) => {
@@ -64,7 +64,7 @@ bot.on('callback_query', async (q) => {
             await bot.sendMessage(q.from.id, phrase(data, 'start'), startKey(data));
         } else if(type === 'start'){
             const lang = await getUserLang(q.from.id);
-            await bot.sendMessage(q.from.id, phrase(lang, 'address'));
+            await bot.sendPhoto(q.from.id, lang === 'ru'? './assets/ru.jpg' : './assets/en.jpg', {caption: phrase(lang, 'address')})
             cache.put('status', 'wait_address');
         }
     }catch (e) {
