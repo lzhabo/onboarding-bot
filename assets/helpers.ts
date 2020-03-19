@@ -43,7 +43,7 @@ export async function checkBoughtUSDN(address: string): Promise<boolean> {
     timeStart=1584604800000&timeEnd=1587369600000&
     limit=100` ;
     const res = (await axios.get(url)).data.data;
-    return res.some(({data: {amount}}: any) => +amount >= 10);
+    return res.length > 0 && res.some(({data: {amount}}: any) => +amount >= 10);
 }
 
 export async function checkStakeUSDN(address: string): Promise<boolean> {
