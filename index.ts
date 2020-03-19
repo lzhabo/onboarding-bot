@@ -8,7 +8,7 @@ import {
     phrase,
     updateUser
 } from './assets/helpers';
-import { langKey, startKey } from './assets/keyboards';
+import {langKey, startKey} from './assets/keyboards';
 
 const cache = require('memory-cache');
 require('dotenv').config();
@@ -25,27 +25,30 @@ bot.on('message', async (msg) => {
         await bot.sendMessage(msg.from.id, phrase(lang, 'wait'));
 
         const user = await getUser(msg.from.id);
-        if(user && user.address && user.date){
+        if (user && user.address && user.date) {
             await bot.sendMessage(msg.from.id, phrase(lang, 'alreadyParticipating'));
             cache.del('status');
             return;
         }
 
         if (!isValidAddress(msg.text)) {
-            await bot.sendMessage(msg.from.id,  phrase(lang, 'invalidAddress'));
+            await cache.put('status', 'wait_address');
+            await bot.sendMessage(msg.from.id, phrase(lang, 'invalidAddress'));
             await bot.sendMessage(msg.from.id, phrase(lang, 'address'));
             return;
         }
 
         const isBoughtUSDN = await checkBoughtUSDN(msg.text);
         if (!isBoughtUSDN) {
-            await bot.sendMessage(msg.from.id,  phrase(lang, 'notEnoughMoney'));
+            await cache.put('status', 'wait_address');
+            await bot.sendMessage(msg.from.id, phrase(lang, 'notEnoughMoney'));
             await bot.sendMessage(msg.from.id, phrase(lang, 'address'));
             return;
         }
         const isStakeUSDN = await checkStakeUSDN(msg.text);
         if (!isStakeUSDN) {
-            await bot.sendMessage(msg.from.id,  phrase(lang, 'stakeRequired'));
+            await cache.put('status', 'wait_address');
+            await bot.sendMessage(msg.from.id, phrase(lang, 'stakeRequired'));
             await bot.sendMessage(msg.from.id, phrase(lang, 'address'));
             return;
         }
@@ -57,17 +60,17 @@ bot.on('message', async (msg) => {
 });
 
 bot.on('callback_query', async (q) => {
-    try{
+    try {
         const {type, data} = JSON.parse(q.data)
-        if(type === 'lang'){
+        if (type === 'lang') {
             await updateUser(q.from.id, {...q.from, 'lang': data});
             await bot.sendMessage(q.from.id, phrase(data, 'start'), startKey(data));
-        } else if(type === 'start'){
+        } else if (type === 'start') {
             const lang = await getUserLang(q.from.id);
-            await bot.sendPhoto(q.from.id, lang === 'ru'? './assets/ru.jpg' : './assets/en.jpg', {caption: phrase(lang, 'address')})
-            cache.put('status', 'wait_address');
+            await bot.sendPhoto(q.from.id, lang === 'ru' ? './assets/ru.jpg' : './assets/en.jpg', {caption: phrase(lang, 'address')})
+            await cache.put('status', 'wait_address');
         }
-    }catch (e) {
+    } catch (e) {
 
     }
 
