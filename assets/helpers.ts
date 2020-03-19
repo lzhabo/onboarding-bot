@@ -35,13 +35,7 @@ export function isValidAddress(address: string): boolean {
 }
 
 export async function checkBoughtUSDN(address: string): Promise<boolean> {
-    const url = `https://api.wavesplatform.com/v0/transactions/transfer?
-    sender=3PGS9W5aZ4kdBFJJ9jxmgjLW8qfqu1b3Y66&
-    recipient=${address}&
-    assetId=DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p&
-    sort=desc&
-    timeStart=1584604800000&timeEnd=1587369600000&
-    limit=100` ;
+    const url = `https://api.wavesplatform.com/v0/transactions/transfer?sender=3PGS9W5aZ4kdBFJJ9jxmgjLW8qfqu1b3Y66&recipient=${address}&assetId=DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p&sort=desc&timeStart=1584604800000&timeEnd=1587369600000&limit=100` ;
     const res = (await axios.get(url)).data.data;
     return res.length > 0 && res.some(({data: {amount}}: any) => +amount >= 10);
 }
