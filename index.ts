@@ -13,10 +13,7 @@ import {langKey, startKey} from './assets/keyboards';
 const cache = require('memory-cache');
 require('dotenv').config();
 
-const bot = new TelegramBot(
-    // process.env.TOKEN
-    '528549200:AAE4uCDX6fo1y7pztwfoOVqemNWz5uZyRuI'
-    , {polling: true});
+const bot = new TelegramBot(process.env.TOKEN, {polling: true});
 
 bot.onText(/\/start/, ({chat: {id}}) => {
     bot.sendMessage(id, phrase('en', 'language'), langKey);
