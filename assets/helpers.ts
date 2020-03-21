@@ -19,6 +19,11 @@ export const addParticipant = (id, data) => {
 
 export const getUserLang = async (id): Promise<string> => await database.getData(`users/${id}/lang`) || 'en'
 
+export async function checkUsageAddress(address: string): Promise<boolean> {
+    const data = await database.getData('participants/'+address)
+    return data === null
+}
+
 export function isValidAddress(address: string): boolean {
 
     try {
