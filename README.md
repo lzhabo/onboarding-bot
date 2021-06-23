@@ -1,1 +1,1 @@
-# waves exchange bot
+# Waves ducks bot
