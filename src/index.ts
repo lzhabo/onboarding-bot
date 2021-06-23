@@ -1,7 +1,6 @@
 import * as TelegramBot from "node-telegram-bot-api";
 import watcherService from "./services/watcherService";
 import { getDuckName } from "./utils";
-// import * as Twitter from "twitter";
 
 require("dotenv").config();
 
