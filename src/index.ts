@@ -1,6 +1,7 @@
 import * as TelegramBot from "node-telegram-bot-api";
 import watcherService from "./services/watcherService";
 import { getDuckName } from "./utils";
+import * as commitCount from "git-commit-count";
 
 require("dotenv").config();
 
@@ -22,6 +23,9 @@ telegram.onText(/\/id/, async ({ chat: { id } }) => {
 telegram.onText(/\/rate/, async ({ chat: { id } }) => {
   const rate = await watcherService.getCurrentWavesRate();
   await telegram.sendMessage(id, rate);
+});
+telegram.onText(/\/version/, async ({ chat: { id } }) => {
+  await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
