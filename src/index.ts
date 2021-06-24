@@ -2,6 +2,7 @@ import * as TelegramBot from "node-telegram-bot-api";
 import watcherService from "./services/watcherService";
 import { getDuckName } from "./utils";
 import * as commitCount from "git-commit-count";
+import axios from "axios";
 
 require("dotenv").config();
 
@@ -36,11 +37,13 @@ const decimals = 1e8;
   setInterval(async () => {
     const data = await watcherService.getUnsentData();
     const rate = await watcherService.getCurrentWavesRate();
-
+    const { data: dict } = await axios.get(
+      "https://wavesducks.com/api/v1/duck-names"
+    );
     for (let i = 0; i < data.length; i++) {
       const duck = data[i];
 
-      const name = getDuckName(duck.duckName);
+      const name = getDuckName(duck.duckName, dict);
       const wavesAmount = duck.amount / decimals;
       const usdAmount = (wavesAmount * rate).toFixed(2);
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
