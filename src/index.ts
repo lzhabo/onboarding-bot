@@ -40,17 +40,23 @@ const decimals = 1e8;
     for (let i = 0; i < data.length; i++) {
       const duck = data[i];
 
+      const name = getDuckName(duck.duckName);
+      const wavesAmount = duck.amount / decimals;
+      const usdAmount = (wavesAmount * rate).toFixed(2);
+      const link = `https://wavesducks.com/duck/${duck.NFT}`;
       await telegram
         .sendMessage(
-          process.env.GROUP_ID,
-          `Duck ${getDuckName(duck.duckName)} was purchased for ${
-            duck.amount / decimals
-          } Waves ($${((duck.amount / decimals) * rate).toFixed(
-            2
-          )} USD) \n\nhttps://wavesducks.com/duck/${duck.NFT}`
+          process.env.EN_GROUP_ID,
+          `Duck ${name} was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
         )
         .catch();
-
+      await sleep(1000);
+      await telegram
+        .sendMessage(
+          process.env.RU_GROUP_ID,
+          `Утка ${name} была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
+        )
+        .catch();
       // twitter.post(
       //   "statuses/update",
       //   { status: `hello` },
