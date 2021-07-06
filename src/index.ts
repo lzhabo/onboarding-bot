@@ -46,6 +46,7 @@ const decimals = 1e8;
       const name = getDuckName(duck.duckName, dict);
       const wavesAmount = duck.amount / decimals;
       const usdAmount = (wavesAmount * rate).toFixed(2);
+      if (wavesAmount < 30) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
       await telegram
         .sendMessage(
