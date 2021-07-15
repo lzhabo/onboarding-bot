@@ -57,6 +57,13 @@ const decimals = 1e8;
       await sleep(1000);
       await telegram
         .sendMessage(
+          process.env.ES_GROUP_ID,
+          `Duck ${name} was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
+        )
+        .catch();
+      await sleep(1000);
+      await telegram
+        .sendMessage(
           process.env.RU_GROUP_ID,
           `Утка ${name} была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
         )
