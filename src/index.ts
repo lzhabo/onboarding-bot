@@ -46,26 +46,33 @@ const decimals = 1e8;
       const name = getDuckName(duck.duckName, dict);
       const wavesAmount = duck.amount / decimals;
       const usdAmount = (wavesAmount * rate).toFixed(2);
+      let duckNumber = "-";
+      try {
+        const { data: numberRawData } = await axios.get(
+          `https://scan.wavesducks.com/achievements?ids=${duck.NFT}`
+        );
+        duckNumber = numberRawData[duck.NFT].n;
+      } catch (e) {}
       if (wavesAmount < 30) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
       await telegram
         .sendMessage(
           process.env.EN_GROUP_ID,
-          `Duck ${name} was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
+          `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
         )
         .catch();
       await sleep(1000);
       await telegram
         .sendMessage(
           process.env.ES_GROUP_ID,
-          `Duck ${name} was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
+          `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
         )
         .catch();
       await sleep(1000);
       await telegram
         .sendMessage(
           process.env.RU_GROUP_ID,
-          `Утка ${name} была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
+          `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
         )
         .catch();
       // twitter.post(
