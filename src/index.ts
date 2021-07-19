@@ -53,7 +53,7 @@ const decimals = 1e8;
         );
         duckNumber = numberRawData[duck.NFT].n;
       } catch (e) {}
-      if (wavesAmount < 30) continue;
+      if (wavesAmount < 1000 / rate) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
       await telegram
         .sendMessage(
