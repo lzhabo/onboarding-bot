@@ -55,26 +55,15 @@ const decimals = 1e8;
       } catch (e) {}
       if (wavesAmount < 1000 / rate) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
-      await telegram
-        .sendMessage(
-          process.env.EN_GROUP_ID,
-          `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
-        )
-        .catch();
+      const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      const enMsg = `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      await telegram.sendMessage(process.env.EN_GROUP_ID, enMsg).catch();
       await sleep(1000);
-      await telegram
-        .sendMessage(
-          process.env.ES_GROUP_ID,
-          `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
-        )
-        .catch();
+      await telegram.sendMessage(process.env.ES_GROUP_ID, enMsg).catch();
       await sleep(1000);
-      await telegram
-        .sendMessage(
-          process.env.RU_GROUP_ID,
-          `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`
-        )
-        .catch();
+      await telegram.sendMessage(process.env.AR_GROUP_ID, enMsg).catch();
+      await sleep(1000);
+      await telegram.sendMessage(process.env.RU_GROUP_ID, ruMsg).catch();
       // twitter.post(
       //   "statuses/update",
       //   { status: `hello` },
