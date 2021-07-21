@@ -31,6 +31,15 @@ telegram.onText(/\/version/, async ({ chat: { id } }) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const sendChanelMessage = async (id: string, msg: string) => {
+  try {
+    await telegram.sendMessage(id, msg);
+    await sleep(2000);
+  } catch (e) {
+    console.log(`❌ failed to send message to the group ${id}`);
+  }
+};
+
 const decimals = 1e8;
 
 (async () => {
@@ -57,13 +66,11 @@ const decimals = 1e8;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
       const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
       const enMsg = `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
-      await telegram.sendMessage(process.env.EN_GROUP_ID, enMsg).catch();
-      await sleep(1000);
-      await telegram.sendMessage(process.env.ES_GROUP_ID, enMsg).catch();
-      await sleep(1000);
-      await telegram.sendMessage(process.env.AR_GROUP_ID, enMsg).catch();
-      await sleep(1000);
-      await telegram.sendMessage(process.env.RU_GROUP_ID, ruMsg).catch();
+
+      await sendChanelMessage(process.env.RU_GROUP_ID, ruMsg);
+      await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
+      await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
+      await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
       // twitter.post(
       //   "statuses/update",
       //   { status: `hello` },
