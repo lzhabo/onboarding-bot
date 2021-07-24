@@ -3,17 +3,18 @@ import watcherService from "./services/watcherService";
 import { getDuckName } from "./utils";
 import * as commitCount from "git-commit-count";
 import axios from "axios";
+import * as Twit from "twit";
 
 require("dotenv").config();
 
 const telegram = new TelegramBot(process.env.TOKEN, { polling: true });
 
-// const twitter = new Twitter({
-//   consumer_key: process.env.CONSUMER_KEY,
-//   consumer_secret: process.env.CONSUMER_SECRET,
-//   access_token_key: process.env.ACCESS_TOKEN_KEY,
-//   access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-// });
+const twitter = new Twit({
+  consumer_key: "kjzrtE8Wl5Q4yiR9AOgRYsBda",
+  consumer_secret: "Lrzc2iLzc2G8XXMldwNXe0NScCBWqjtrhiqrQTtty8wFGnVu7R",
+  access_token: "1411844553351467008-DoA7Icg0ohPc15mKWRGR545FJFM3mc",
+  access_token_secret: "AoBwxMaiTPt0GDuthAz3zuJLimK6SHUJQlzACQllwib1k",
+});
 
 telegram.onText(/\/start/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, "I`m alive");
@@ -71,16 +72,12 @@ const decimals = 1e8;
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
-      // twitter.post(
-      //   "statuses/update",
-      //   { status: `hello` },
-      //   function (error, tweet, response) {
-      //     if (!error) {
-      //       console.log(tweet);
-      //     }
-      //   }
-      // );
-
+      const twitterErr = await new Promise((r) =>
+        twitter.post("statuses/update", { status: enMsg }, (err) => r(err))
+      );
+      if (twitterErr) {
+        console.log(twitterErr);
+      }
       await sleep(1000);
     }
   }, 30 * 1000);
