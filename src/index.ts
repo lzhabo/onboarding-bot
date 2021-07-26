@@ -4,6 +4,16 @@ import { getDuckName } from "./utils";
 import * as commitCount from "git-commit-count";
 import axios from "axios";
 import * as Twit from "twit";
+import {
+  getCurrentWavesRate,
+  getDucksHatchedAmount,
+  getDucksSalesInLast24Hours,
+  getDucksSalesInTotal,
+  getFarmingPower,
+  getHatchPrice,
+  getTopDuck,
+  getTotalInfo,
+} from "./services/dataService";
 
 require("dotenv").config();
 
@@ -23,11 +33,34 @@ telegram.onText(/\/id/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, String(id));
 });
 telegram.onText(/\/rate/, async ({ chat: { id } }) => {
-  const rate = await watcherService.getCurrentWavesRate();
+  const rate = await getCurrentWavesRate();
   await telegram.sendMessage(id, rate);
 });
 telegram.onText(/\/version/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
+});
+
+telegram.onText(/\/test/, async ({ chat: { id } }) => {
+  const data = await getTotalInfo();
+  const msg = `
+Last price for EGG: ${data.ducksSalesInLast24Hours.toFixed(2)} WAVES (${(
+    data.ducksSalesInLast24Hours * data.rate
+  ).toFixed(2)}$)
+Last duck price for hatching: ${data.hatchPrice} EGG 
+Total number of ducks: -
+Number of ducks hatched in total / today: ${data.ducksHatchedAmount} / ${
+    data.ducksHatchedAmountForDay
+  }
+Ducks sales weekly / in total: $200 000 (⬆️10%) / $3 000 000  - хуй знает ваще
+Top Duck ${data.topDuck.duckName} sold for ${(
+    data.topDuck.amount / decimals
+  ).toFixed(2)} Waves ( ${(
+    (data.topDuck.amount / decimals) *
+    data.rate
+  ).toFixed(2)}$) link
+Number of jackpots ducks in total / hatched:  10 / 3 - хуй знает ваще
+  `;
+  await telegram.sendMessage(id, msg);
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,7 +79,7 @@ const decimals = 1e8;
 (async () => {
   setInterval(async () => {
     const data = await watcherService.getUnsentData();
-    const rate = await watcherService.getCurrentWavesRate();
+    const rate = await getCurrentWavesRate();
     const { data: dict } = await axios.get(
       "https://wavesducks.com/api/v1/duck-names"
     );
