@@ -5,14 +5,13 @@ import * as commitCount from "git-commit-count";
 import axios from "axios";
 import * as Twit from "twit";
 import {
+  ducksSalesWeeklyInTotal,
   getCurrentWavesRate,
-  getDucksHatchedAmount,
-  getDucksSalesInLast24Hours,
-  getDucksSalesInTotal,
-  getFarmingPower,
-  getHatchPrice,
-  getTopDuck,
-  getTotalInfo,
+  lastDuckPriceForHatching,
+  lastPriceForEgg,
+  numberOfDucksHatchedInTotalToday,
+  topDuck,
+  totalNumberOfDucks,
 } from "./services/dataService";
 
 require("dotenv").config();
@@ -40,26 +39,45 @@ telegram.onText(/\/version/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
 });
 
-telegram.onText(/\/test/, async ({ chat: { id } }) => {
-  const data = await getTotalInfo();
-  const msg = `
-Last price for EGG: ${data.ducksSalesInLast24Hours.toFixed(2)} WAVES (${(
-    data.ducksSalesInLast24Hours * data.rate
-  ).toFixed(2)}$)
-Last duck price for hatching: ${data.hatchPrice} EGG 
-Total number of ducks: -
-Number of ducks hatched in total / today: ${data.ducksHatchedAmount} / ${
-    data.ducksHatchedAmountForDay
-  }
-Ducks sales weekly / in total: $200 000 (⬆️10%) / $3 000 000  - хуй знает ваще
-Top Duck ${data.topDuck.duckName} sold for ${(
-    data.topDuck.amount / decimals
-  ).toFixed(2)} Waves ( ${(
-    (data.topDuck.amount / decimals) *
-    data.rate
-  ).toFixed(2)}$) link
-Number of jackpots ducks in total / hatched:  10 / 3 - хуй знает ваще
-  `;
+telegram.onText(/\/analytics/, async ({ chat: { id } }) => {
+  const data: any = (
+    await Promise.all(
+      Object.entries({
+        lastPriceForEgg: lastPriceForEgg(),
+        lastDuckPriceForHatching: lastDuckPriceForHatching(),
+        totalNumberOfDucks: totalNumberOfDucks(),
+        numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
+        topDuck: topDuck(),
+        ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+      }).map(
+        ([key, promise]) =>
+          new Promise(async (r) => {
+            const result = await promise;
+            return r({ key, result });
+          })
+      )
+    )
+  ).reduce((acc, { key, result }) => ({ ...acc, [key]: result }), {});
+  const msg = `Last price for EGG: ${data.lastPriceForEgg} USDN
+  
+Last duck price for hatching: ${data.lastDuckPriceForHatching} EGG
+
+Total number of ducks: ${data.totalNumberOfDucks}
+
+Number of ducks hatched in total / today: ${
+    data.numberOfDucksHatchedInTotalToday.total
+  } / ${data.numberOfDucksHatchedInTotalToday.today}
+  
+Ducks sales weekly / in total: $${
+    data.ducksSalesWeeklyInTotal.lastWeekSales
+  } (${data.ducksSalesWeeklyInTotal.lessZero ? "⬇️" : "⬆️"}️${
+    data.ducksSalesWeeklyInTotal.difference
+  }%) / $${data.ducksSalesWeeklyInTotal.totalSales}
+  
+Top Duck ${data.topDuck.duckRealName} sold for ${data.topDuck.amount} Waves (${
+    data.topDuck.inDollar
+  }$) 
+https://wavesducks.com/duck/${data.topDuck.NFT}`;
   await telegram.sendMessage(id, msg);
 });
 
@@ -99,7 +117,7 @@ const decimals = 1e8;
       if (wavesAmount < 1000 / rate) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
       const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
-      const enMsg = `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      const enMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
 
       await sendChanelMessage(process.env.RU_GROUP_ID, ruMsg);
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
