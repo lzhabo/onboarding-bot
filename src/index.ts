@@ -110,7 +110,7 @@ const decimals = 1e8;
       let duckNumber = "-";
       try {
         const { data: numberRawData } = await axios.get(
-          `https://scan.wavesducks.com/achievements?ids=${duck.NFT}`
+          `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
         duckNumber = numberRawData[duck.NFT].n;
       } catch (e) {}
