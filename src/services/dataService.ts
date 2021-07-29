@@ -20,32 +20,6 @@ export interface IHatchDuck {
   duckName: string;
 }
 
-type TLastPriceForEggsData = {
-  success: boolean;
-  height: number;
-  data: {
-    id: string;
-    A_asset_balance: string;
-    A_asset_id: string;
-    B_asset_balance: string;
-    B_asset_id: string;
-    active: boolean;
-    commission: number;
-    commission_scale_delimiter: number;
-    share_asset_id: string;
-    share_asset_supply: string;
-    version: string;
-    first_harvest_height: number;
-    A_asset_init: string;
-    B_asset_init: string;
-    share_limit_on_first_harvest: string;
-    totalLiquidity: string;
-    stakingIncome: string;
-    txCount24: string;
-    volume24: string;
-    lpFees24: string;
-  };
-};
 type TAuctionRespData = { data: { auctionData: IDuck[] } };
 type THatchingRespData = { data: { duckData: IHatchDuck[] } };
 
@@ -59,6 +33,7 @@ export const lastPriceForEgg = async () => {
     (Number.parseInt(data.data.A_asset_balance) / 100)
   ).toFixed(2);
 };
+
 export const lastDuckPriceForHatching = async () => {
   const { data } = await axios.get(
     "https://wavesducks.wavesnodes.com/addresses/data/3PEktVux2RhchSN63DsDo4b4mz4QqzKSeDv/ducks_last_price"
@@ -72,6 +47,7 @@ export const getCurrentWavesRate = async () => {
   );
   return data.market_data.current_price.usd;
 };
+
 export const totalNumberOfDucks = async () => {
   const { data }: TAuctionRespData = await axios.get(
     "https://duxplorer.com/auction/json"
@@ -91,6 +67,7 @@ export const numberOfDucksHatchedInTotalToday = async () => {
   ).length;
   return { total: data.duckData.length, today };
 };
+
 export const ducksSalesWeeklyInTotal = async () => {
   const { data }: TAuctionRespData = await axios.get(
     "https://duxplorer.com/auction/json"

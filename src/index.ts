@@ -116,6 +116,7 @@ const decimals = 1e8;
       } catch (e) {}
       if (wavesAmount < 1000 / rate) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}`;
+
       const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
       const enMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
 
@@ -123,6 +124,7 @@ const decimals = 1e8;
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
+
       const twitterErr = await new Promise((r) =>
         twitter.post("statuses/update", { status: enMsg }, (err) => r(err))
       );
