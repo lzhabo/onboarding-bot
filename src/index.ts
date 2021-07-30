@@ -114,6 +114,12 @@ const decimals = 1e8;
       let duckNumber = "-";
       let duckCacheId = "";
       try {
+        const obj = {
+          "69j44Y5MPCfBySvNSMRMRrEJ3HnoY2Bsr3zm2VqJCjuJ": {
+            a: [],
+            n: 12459,
+          },
+        };
         const { data: numberRawData } = await axios.get(
           `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
@@ -123,7 +129,8 @@ const decimals = 1e8;
           `https://wavesducks.com/api/v1/preview/preload/duck/${duck.NFT}`
         );
         duckCacheId = cacheId;
-        duckNumber = numberRawData[duck.NFT].n;
+        duckNumber =
+          numberRawData[duck.NFT].n != null ? numberRawData[duck.NFT].n : "-";
       } catch (e) {}
       if (wavesAmount < 1000 / rate) continue;
       const link = `https://wavesducks.com/duck/${duck.NFT}?cacheId=${duckCacheId}`;
