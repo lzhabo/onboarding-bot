@@ -4,6 +4,15 @@ import { getDuckName } from "./utils";
 import * as commitCount from "git-commit-count";
 import axios from "axios";
 import * as Twit from "twit";
+import {
+  ducksSalesWeeklyInTotal,
+  getCurrentWavesRate,
+  lastDuckPriceForHatching,
+  lastPriceForEgg,
+  numberOfDucksHatchedInTotalToday,
+  topDuck,
+  totalNumberOfDucks,
+} from "./services/dataService";
 
 require("dotenv").config();
 
@@ -23,11 +32,53 @@ telegram.onText(/\/id/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, String(id));
 });
 telegram.onText(/\/rate/, async ({ chat: { id } }) => {
-  const rate = await watcherService.getCurrentWavesRate();
+  const rate = await getCurrentWavesRate();
   await telegram.sendMessage(id, rate);
 });
 telegram.onText(/\/version/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
+});
+
+telegram.onText(/\/analytics/, async ({ chat: { id } }) => {
+  const data: any = (
+    await Promise.all(
+      Object.entries({
+        lastPriceForEgg: lastPriceForEgg(),
+        lastDuckPriceForHatching: lastDuckPriceForHatching(),
+        totalNumberOfDucks: totalNumberOfDucks(),
+        numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
+        topDuck: topDuck(),
+        ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+      }).map(
+        ([key, promise]) =>
+          new Promise(async (r) => {
+            const result = await promise;
+            return r({ key, result });
+          })
+      )
+    )
+  ).reduce((acc, { key, result }) => ({ ...acc, [key]: result }), {});
+  const msg = `Last price for EGG: ${data.lastPriceForEgg} USDN
+  
+Last duck price for hatching: ${data.lastDuckPriceForHatching} EGG
+
+Total number of ducks: ${data.totalNumberOfDucks}
+
+Number of ducks hatched in total / today: ${
+    data.numberOfDucksHatchedInTotalToday.total
+  } / ${data.numberOfDucksHatchedInTotalToday.today}
+  
+Ducks sales weekly / in total: $${
+    data.ducksSalesWeeklyInTotal.lastWeekSales
+  } (${data.ducksSalesWeeklyInTotal.lessZero ? "⬇️" : "⬆️"}️${
+    data.ducksSalesWeeklyInTotal.difference
+  }%) / $${data.ducksSalesWeeklyInTotal.totalSales}
+  
+Top Duck ${data.topDuck.duckRealName} sold for ${data.topDuck.amount} Waves (${
+    data.topDuck.inDollar
+  }$) 
+https://wavesducks.com/duck/${data.topDuck.NFT}`;
+  await telegram.sendMessage(id, msg);
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,7 +97,7 @@ const decimals = 1e8;
 (async () => {
   setInterval(async () => {
     const data = await watcherService.getUnsentData();
-    const rate = await watcherService.getCurrentWavesRate();
+    const rate = await getCurrentWavesRate();
     const { data: dict } = await axios.get(
       "https://wavesducks.com/api/v1/duck-names"
     );
@@ -57,30 +108,40 @@ const decimals = 1e8;
       const wavesAmount = duck.amount / decimals;
       const usdAmount = (wavesAmount * rate).toFixed(2);
       let duckNumber = "-";
+      let duckCacheId = "";
       try {
         const { data: numberRawData } = await axios.get(
-          `https://scan.wavesducks.com/achievements?ids=${duck.NFT}`
+          `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
+        const {
+          data: { cacheId },
+        } = await axios.get(
+          `https://wavesducks.com/api/v1/preview/preload/duck/${duck.NFT}`
+        );
+        duckCacheId = cacheId;
         duckNumber = numberRawData[duck.NFT].n;
       } catch (e) {}
       if (wavesAmount < 1000 / rate) continue;
-      const link = `https://wavesducks.com/duck/${duck.NFT}`;
+      const link = `https://wavesducks.com/duck/${duck.NFT}?cacheId=${duckCacheId}`;
+
       const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
-      const enMsg = `Duck ${name} (#${duckNumber}) purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      const enMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      const twitterMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n#WavesDucks #NFT\n\n${link}`;
 
       await sendChanelMessage(process.env.RU_GROUP_ID, ruMsg);
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
+
       const twitterErr = await new Promise((r) =>
-        twitter.post("statuses/update", { status: enMsg }, (err) => r(err))
+        twitter.post("statuses/update", { status: twitterMsg }, (err) => r(err))
       );
       if (twitterErr) {
         console.log(twitterErr);
       }
       await sleep(1000);
     }
-  }, 30 * 1000);
+  }, 60 * 1000);
 })();
 
 process.stdout.write("Bot has been started ✅ ");

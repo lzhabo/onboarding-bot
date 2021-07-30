@@ -27,13 +27,6 @@ class WatcherService {
     return data.filter(({ timestamp }) => timestamp > lastTimestamp);
   };
 
-  getCurrentWavesRate = async () => {
-    const { data } = await axios.get(
-      "https://api.coingecko.com/api/v3/coins/waves?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
-    );
-    return data.market_data.current_price.usd;
-  };
-
   private getData = async () => {
     const { data }: TRespData = await axios.get(
       "https://duxplorer.com/auction/json"
