@@ -114,12 +114,6 @@ const decimals = 1e8;
       let duckNumber = "-";
       let duckCacheId = "";
       try {
-        const obj = {
-          "69j44Y5MPCfBySvNSMRMRrEJ3HnoY2Bsr3zm2VqJCjuJ": {
-            a: [],
-            n: 12459,
-          },
-        };
         const { data: numberRawData } = await axios.get(
           `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
