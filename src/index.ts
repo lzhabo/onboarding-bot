@@ -57,10 +57,11 @@ telegram.onText(/\/analytics/, async ({ chat: { id } }) => {
           })
       )
     )
-  ).reduce(
-    (acc, { key, result }) => ({ ...acc, [key]: result }),
-    {} as Record<string, any>
-  );
+  ).reduce((acc, { key, result }) => {
+    //{ ...acc, [key]: result }
+    acc[key] = result;
+    return acc;
+  }, {} as Record<string, any>);
   const msg = `Last price for EGG: ${data.lastPriceForEgg} USDN
   
 Last duck price for hatching: ${data.lastDuckPriceForHatching} EGG
