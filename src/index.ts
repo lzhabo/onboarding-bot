@@ -108,17 +108,25 @@ const decimals = 1e8;
       const wavesAmount = duck.amount / decimals;
       const usdAmount = (wavesAmount * rate).toFixed(2);
       let duckNumber = "-";
+      let duckCacheId = "";
       try {
         const { data: numberRawData } = await axios.get(
           `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
+        const {
+          data: { cacheId },
+        } = await axios.get(
+          `https://wavesducks.com/api/v1/preview/preload/duck/${duck.NFT}`
+        );
+        duckCacheId = cacheId;
         duckNumber = numberRawData[duck.NFT].n;
       } catch (e) {}
       if (wavesAmount < 1000 / rate) continue;
-      const link = `https://wavesducks.com/duck/${duck.NFT}`;
+      const link = `https://wavesducks.com/duck/${duck.NFT}?cacheId=${duckCacheId}`;
 
       const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
       const enMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
+      const twitterMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n#WavesDucks #NFT\n\n${link}`;
 
       await sendChanelMessage(process.env.RU_GROUP_ID, ruMsg);
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
@@ -126,14 +134,14 @@ const decimals = 1e8;
       await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
 
       const twitterErr = await new Promise((r) =>
-        twitter.post("statuses/update", { status: enMsg }, (err) => r(err))
+        twitter.post("statuses/update", { status: twitterMsg }, (err) => r(err))
       );
       if (twitterErr) {
         console.log(twitterErr);
       }
       await sleep(1000);
     }
-  }, 30 * 1000);
+  }, 60 * 1000);
 })();
 
 process.stdout.write("Bot has been started ✅ ");
