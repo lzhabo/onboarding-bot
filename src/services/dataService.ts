@@ -1,5 +1,6 @@
 import axios from "axios";
 import { prettifyNums } from "../utils";
+import * as moment from "moment";
 
 const decimals = 1e8;
 
@@ -59,11 +60,10 @@ export const numberOfDucksHatchedInTotalToday = async () => {
   const { data }: THatchingRespData = await axios.get(
     "https://duxplorer.com/hatching/json"
   );
-  const yesterday = new Date(
-    new Date().getTime() - 24 * 60 * 60 * 1000
-  ).getTime();
+
+  const todayDate = Date.parse(moment().startOf("day").toString());
   const today = data.duckData.filter(
-    (duck) => duck.timestamp >= yesterday
+    (duck) => duck.timestamp >= todayDate
   ).length;
   return { total: data.duckData.length, today };
 };
