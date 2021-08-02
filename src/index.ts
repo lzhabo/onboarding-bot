@@ -117,10 +117,16 @@ const decimals = 1e8;
         const { data: numberRawData } = await axios.get(
           `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
+        const start = new Date().getTime();
         const {
           data: { cacheId },
         } = await axios.get(
           `https://wavesducks.com/api/v1/preview/preload/duck/${duck.NFT}`
+        );
+        console.log(
+          `⏰ preload time for cacheId ${cacheId} and NFT ${duck.NFT} is ${
+            (new Date().getTime() - start) / 1000
+          } sec`
         );
         duckCacheId = cacheId;
         duckNumber =
