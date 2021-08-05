@@ -39,50 +39,56 @@ telegram.onText(/\/version/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
 });
 
-telegram.onText(/\/analytics/, async ({ chat: { id } }) => {
-  const data: any = (
-    await Promise.all(
-      Object.entries({
-        lastPriceForEgg: lastPriceForEgg(),
-        lastDuckPriceForHatching: lastDuckPriceForHatching(),
-        totalNumberOfDucks: totalNumberOfDucks(),
-        numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
-        topDuck: topDuck(),
-        ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
-      }).map(
-        ([key, promise]) =>
-          new Promise(async (r) => {
-            const result = await promise;
-            return r({ key, result });
-          })
+telegram.onText(/\/data/, async ({ chat: { id } }) => {
+  try {
+    const res = await telegram.sendMessage(
+      id,
+      "Loading data from the blockchain – may take some time"
+    );
+    const data: any = (
+      await Promise.all(
+        Object.entries({
+          lastPriceForEgg: lastPriceForEgg(),
+          lastDuckPriceForHatching: lastDuckPriceForHatching(),
+          totalNumberOfDucks: totalNumberOfDucks(),
+          numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
+          topDuck: topDuck(),
+          ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+        }).map(
+          ([key, promise]) =>
+            new Promise(async (r) => {
+              const result = await promise;
+              return r({ key, result });
+            })
+        )
       )
-    )
-  ).reduce((acc, { key, result }) => {
-    //{ ...acc, [key]: result }
-    acc[key] = result;
-    return acc;
-  }, {} as Record<string, any>);
-  const msg = `Last price for EGG: ${data.lastPriceForEgg} USDN
+    ).reduce((acc, { key, result }) => {
+      acc[key] = result;
+      return acc;
+    }, {} as Record<string, any>);
+    const msg = `
+  *Daily Ducks Stats:*
   
-Last duck price for hatching: ${data.lastDuckPriceForHatching} EGG
+${data.lastPriceForEgg}
 
-Total number of ducks: ${data.totalNumberOfDucks}
+${data.lastDuckPriceForHatching}
 
-Number of ducks hatched in total / today: ${
-    data.numberOfDucksHatchedInTotalToday.total
-  } / ${data.numberOfDucksHatchedInTotalToday.today}
-  
-Ducks sales weekly / in total: $${
-    data.ducksSalesWeeklyInTotal.lastWeekSales
-  } (${data.ducksSalesWeeklyInTotal.lessZero ? "⬇️" : "⬆️"}️${
-    data.ducksSalesWeeklyInTotal.difference
-  }%) / $${data.ducksSalesWeeklyInTotal.totalSales}
-  
-Top Duck ${data.topDuck.duckRealName} sold for ${data.topDuck.amount} Waves (${
-    data.topDuck.inDollar
-  }$) 
-https://wavesducks.com/duck/${data.topDuck.NFT}`;
-  await telegram.sendMessage(id, msg);
+${data.totalNumberOfDucks}
+
+${data.numberOfDucksHatchedInTotalToday}
+
+${data.ducksSalesWeeklyInTotal}
+
+${data.topDuck}`;
+    await telegram.editMessageText(msg, {
+      parse_mode: "Markdown",
+      chat_id: id,
+      message_id: res.message_id,
+    });
+  } catch (e) {
+    await telegram.sendMessage(id, "ooops... something went wrong");
+    console.log(e.toString());
+  }
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -115,7 +121,8 @@ const decimals = 1e8;
       let duckCacheId = "";
       try {
         const { data: numberRawData } = await axios.get(
-          `https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
+          `
+    https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
         );
         const start = new Date().getTime();
         const {
