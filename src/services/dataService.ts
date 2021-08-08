@@ -38,11 +38,11 @@ export const lastPriceForEgg = async () => {
   const price =
     Number.parseInt(data.data.B_asset_balance) /
     100000000 /
-    +(Number.parseInt(data.data.A_asset_balance) / 100).toFixed(2);
+    (Number.parseInt(data.data.A_asset_balance) / 100);
 
-  return `🥚 Last price for EGG: *${price} WAVES (${(rate * price).toFixed(
-    2
-  )})*`;
+  return `🥚 Last price for EGG: *${price.toFixed(2)} WAVES (${(
+    rate * price
+  ).toFixed(2)})*`;
 };
 export const totalFarmingPower = async () => {
   const { data } = await axios.get("https://duxplorer.com/farming/json");
