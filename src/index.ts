@@ -9,8 +9,10 @@ import {
   getCurrentWavesRate,
   lastDuckPriceForHatching,
   lastPriceForEgg,
+  numberOfDucksBurnedToday,
   numberOfDucksHatchedInTotalToday,
   topDuck,
+  totalFarmingPower,
   totalNumberOfDucks,
 } from "./services/dataService";
 
@@ -39,7 +41,7 @@ telegram.onText(/\/version/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
 });
 
-telegram.onText(/\/data/, async ({ chat: { id } }) => {
+telegram.onText(/\/stats/, async ({ chat: { id } }) => {
   try {
     const res = await telegram.sendMessage(
       id,
@@ -54,6 +56,8 @@ telegram.onText(/\/data/, async ({ chat: { id } }) => {
           numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
           topDuck: topDuck(),
           ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+          numberOfDucksBurnedToday: numberOfDucksBurnedToday(),
+          totalFarmingPower: totalFarmingPower(),
         }).map(
           ([key, promise]) =>
             new Promise(async (r) => {
@@ -78,6 +82,10 @@ ${data.totalNumberOfDucks}
 ${data.numberOfDucksHatchedInTotalToday}
 
 ${data.ducksSalesWeeklyInTotal}
+
+${data.numberOfDucksBurnedToday}
+
+${data.totalFarmingPower}
 
 ${data.topDuck}`;
     await telegram.editMessageText(msg, {
