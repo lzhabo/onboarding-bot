@@ -24,17 +24,25 @@ export interface IHatchDuck {
 type TAuctionRespData = { data: { auctionData: IDuck[] } };
 type THatchingRespData = { data: { duckData: IHatchDuck[] } };
 
+export const getCurrentWavesRate = async () => {
+  const { data } = await axios.get(
+    "https://api.coingecko.com/api/v3/coins/waves?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
+  );
+  return data.market_data.current_price.usd;
+};
 export const lastPriceForEgg = async () => {
   const { data } = await axios.get(
     "https://backend.swop.fi/exchangers/3PNVFWopwCD9CgGXkpYWEY94oQ5XCAEXBmQ"
   );
-  const price = (
+  const rate = await getCurrentWavesRate();
+  const price =
     Number.parseInt(data.data.B_asset_balance) /
     100000000 /
-    (Number.parseInt(data.data.A_asset_balance) / 100)
-  ).toFixed(2);
+    +(Number.parseInt(data.data.A_asset_balance) / 100).toFixed(2);
 
-  return `🥚 Last price for EGG: *$${price}*`;
+  return `🥚 Last price for EGG: *${price} WAVES (${(rate * price).toFixed(
+    2
+  )})*`;
 };
 export const totalFarmingPower = async () => {
   const { data } = await axios.get("https://duxplorer.com/farming/json");
@@ -42,7 +50,7 @@ export const totalFarmingPower = async () => {
     (acc, { farmingPower }) => acc + farmingPower,
     0
   );
-  return `💪 Total farming power: *$${res} EGG*`;
+  return `💪 Total farming power: *${res} EGG*`;
 };
 
 export const lastDuckPriceForHatching = async () => {
@@ -54,18 +62,12 @@ export const lastDuckPriceForHatching = async () => {
   return `🥚 > 🦆 Last duck price for hatching: *${hatching} EGG*`;
 };
 
-export const getCurrentWavesRate = async () => {
-  const { data } = await axios.get(
-    "https://api.coingecko.com/api/v3/coins/waves?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
-  );
-  return data.market_data.current_price.usd;
-};
-
 export const totalNumberOfDucks = async () => {
   const hatching = await axios.get("https://duxplorer.com/hatching/json");
   const breeding = await axios.get("https://duxplorer.com/breeding/json");
-  const ducks = hatching.data.length + breeding.data.length;
-  return `🦆 Total number of ducks: *${ducks}*`;
+  const ducksAmount =
+    hatching.data.duckData.length + breeding.data.duckData.length;
+  return `🦆 Total number of ducks: *${ducksAmount}*`;
 };
 
 export const numberOfDucksHatchedInTotalToday = async () => {
