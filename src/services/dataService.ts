@@ -89,7 +89,7 @@ export const numberOfDucksBurnedToday = async () => {
   const today = data.rebirthData.filter(
     (duck) => duck.timestamp >= todayDate
   ).length;
-  return `🔥 Number of ducks burned today (с 12 часов ночи по мск) : *${data.rebirthData.length}* / *${today}*`;
+  return `🔥 Number of ducks burned today : *${data.rebirthData.length}* / *${today}*`;
 };
 
 export const ducksSalesWeeklyInTotal = async () => {
