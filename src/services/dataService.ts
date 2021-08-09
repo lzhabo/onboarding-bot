@@ -122,18 +122,19 @@ export const ducksSalesWeeklyInTotal = async () => {
   const totalSales =
     data.auctionData.reduce((acc, { amount }) => acc + amount / decimals, 0) *
     rate;
-  const difference = ((lastWeekSales - twoWeeksAgoSales) / lastWeekSales) * 100;
+  // const difference = ((lastWeekSales - twoWeeksAgoSales) / lastWeekSales) * 100;
 
   const res = {
     lastWeekSales: prettifyNums(Math.round(lastWeekSales)),
-    difference: Math.abs(difference).toFixed(2),
-    percents: difference !== 0 ? Math.round(Math.abs(difference)) : "",
+    // difference: Math.abs(difference).toFixed(2),
+    // percents: difference !== 0 ? Math.round(Math.abs(difference)) : "",
     totalSales: prettifyNums(Math.round(totalSales)),
   };
 
-  return `💰 Ducks sales weekly / in total: *$${res.lastWeekSales}* (${
-    difference < 0 ? "⬇️" : "⬆️"
-  }️*${res.difference}%)* / *$${res.totalSales}*`;
+  // return `💰 Ducks sales weekly / in total: *$${res.lastWeekSales}* (${
+  //   difference < 0 ? "⬇️" : "⬆️"
+  // }️*${res.difference}%)* / *$${res.totalSales}*`;
+  return `💰 Ducks sales weekly / in total: *$${res.lastWeekSales}* / *$${res.totalSales}*`;
 };
 
 export const topDuck = async () => {
