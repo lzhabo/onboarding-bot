@@ -24,36 +24,50 @@ export interface IHatchDuck {
 type TAuctionRespData = { data: { auctionData: IDuck[] } };
 type THatchingRespData = { data: { duckData: IHatchDuck[] } };
 
-export const lastPriceForEgg = async () => {
-  const { data } = await axios.get(
-    "https://backend.swop.fi/exchangers/3PEeJQRJT4v4XvSUBPmxhdWKz439nae7KtQ"
-  );
-  return (
-    Number.parseInt(data.data.B_asset_balance) /
-    1000000 /
-    (Number.parseInt(data.data.A_asset_balance) / 100)
-  ).toFixed(2);
-};
-
-export const lastDuckPriceForHatching = async () => {
-  const { data } = await axios.get(
-    "https://wavesducks.wavesnodes.com/addresses/data/3PEktVux2RhchSN63DsDo4b4mz4QqzKSeDv/ducks_last_price"
-  );
-  return data.value / 100;
-};
-
 export const getCurrentWavesRate = async () => {
   const { data } = await axios.get(
     "https://api.coingecko.com/api/v3/coins/waves?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
   );
   return data.market_data.current_price.usd;
 };
+export const lastPriceForEgg = async () => {
+  const { data } = await axios.get(
+    "https://backend.swop.fi/exchangers/3PNVFWopwCD9CgGXkpYWEY94oQ5XCAEXBmQ"
+  );
+  const rate = await getCurrentWavesRate();
+  const price =
+    Number.parseInt(data.data.B_asset_balance) /
+    100000000 /
+    (Number.parseInt(data.data.A_asset_balance) / 100);
+
+  return `🥚 Last price for EGG: *${price.toFixed(2)} WAVES ($${(
+    rate * price
+  ).toFixed(2)})*`;
+};
+export const totalFarmingPower = async () => {
+  const { data } = await axios.get("https://duxplorer.com/farming/json");
+  const res = data.farmData.reduce(
+    (acc, { farmingPower }) => acc + farmingPower,
+    0
+  );
+  return `💪 Total farming power: *${res} EGG*`;
+};
+
+export const lastDuckPriceForHatching = async () => {
+  const { data } = await axios.get(
+    "https://wavesducks.wavesnodes.com/addresses/data/3PEktVux2RhchSN63DsDo4b4mz4QqzKSeDv/ducks_last_price"
+  );
+  const hatching = data.value / 100;
+
+  return `🥚 > 🦆 Last duck price for hatching: *${hatching} EGG*`;
+};
 
 export const totalNumberOfDucks = async () => {
-  const { data }: TAuctionRespData = await axios.get(
-    "https://duxplorer.com/auction/json"
-  );
-  return data.auctionData.length;
+  const hatching = await axios.get("https://duxplorer.com/hatching/json");
+  const breeding = await axios.get("https://duxplorer.com/breeding/json");
+  const ducksAmount =
+    hatching.data.duckData.length + breeding.data.duckData.length;
+  return `🦆 Total number of ducks: *${ducksAmount}*`;
 };
 
 export const numberOfDucksHatchedInTotalToday = async () => {
@@ -65,7 +79,17 @@ export const numberOfDucksHatchedInTotalToday = async () => {
   const today = data.duckData.filter(
     (duck) => duck.timestamp >= todayDate
   ).length;
-  return { total: data.duckData.length, today };
+
+  return `🦆 <> 🦆 Number of ducks hatched in total / today: *${data.duckData.length}* / *${today}*`;
+};
+
+export const numberOfDucksBurnedToday = async () => {
+  const { data }: any = await axios.get("https://duxplorer.com/rebirth/json");
+  const todayDate = Date.parse(moment().startOf("day").toString());
+  const today = data.rebirthData.filter(
+    (duck) => duck.timestamp >= todayDate
+  ).length;
+  return `🔥 Number of ducks burned today : *${data.rebirthData.length}* / *${today}*`;
 };
 
 export const ducksSalesWeeklyInTotal = async () => {
@@ -100,25 +124,109 @@ export const ducksSalesWeeklyInTotal = async () => {
     rate;
   const difference = ((lastWeekSales - twoWeeksAgoSales) / lastWeekSales) * 100;
 
-  return {
-    totalSales: prettifyNums(Math.round(totalSales)),
+  const res = {
     lastWeekSales: prettifyNums(Math.round(lastWeekSales)),
-    difference: Math.round(Math.abs(difference)),
-    lessZero: difference < 0,
+    difference: Math.abs(difference).toFixed(2),
+    percents: difference !== 0 ? Math.round(Math.abs(difference)) : "",
+    totalSales: prettifyNums(Math.round(totalSales)),
   };
+
+  return `💰 Ducks sales weekly / in total: *$${res.lastWeekSales}* (${
+    difference < 0 ? "⬇️" : "⬆️"
+  }️*${res.difference}%)* / *$${res.totalSales}*`;
 };
 
 export const topDuck = async () => {
   const { data }: TAuctionRespData = await axios.get(
     "https://duxplorer.com/auction/json"
   );
+  const yesterday = new Date(
+    new Date().getTime() - 24 * 60 * 60 * 1000
+  ).getTime();
   const rate = await getCurrentWavesRate();
-  const topDuck = data.auctionData.reduce((prev, current) =>
+  const ducksForLast24Hours = data.auctionData.filter(
+    (duck) => duck.timestamp >= yesterday
+  );
+  const topDuck = ducksForLast24Hours.reduce((prev, current) =>
     prev.amount > current.amount ? prev : current
   );
-  return {
+  const res: any = {
     ...topDuck,
     amount: topDuck.amount / decimals,
     inDollar: (topDuck.amount / decimals) * rate,
   };
+
+  const {
+    data: { cacheId },
+  } = await axios.get(
+    `https://wavesducks.com/api/v1/preview/preload/duck/${topDuck.NFT}`
+  );
+  const link = `https://wavesducks.com/duck/${topDuck.NFT}?cacheId=${cacheId}`;
+
+  return `🤩 Top Duck [${
+    res.duckRealName
+  }](${link}) for last 24 hours sold for *${res.amount}* Waves *($${Math.round(
+    res.inDollar
+  )})*`;
+};
+
+export const numberOfDucksSoldThiWeekToday = async () => {
+  const { data }: any = await axios.get("https://duxplorer.com/auction/json");
+  const todayDate = Date.parse(moment().startOf("day").toString());
+  const thisWeekDate = Date.parse(moment().startOf("week").toString());
+
+  const twoWeekAgoDucks = data.auctionData.filter(
+    (d) => d.timestamp >= thisWeekDate
+  );
+  const todayDucks = twoWeekAgoDucks.filter(
+    (d) => d.timestamp >= todayDate
+  ).length;
+  return `🦆 > 💵 Number of ducks sold this week / today:  *${twoWeekAgoDucks.length} / ${todayDucks}*`;
+};
+
+export const getAnalytics = async () => {
+  const data: any = (
+    await Promise.all(
+      Object.entries({
+        lastPriceForEgg: lastPriceForEgg(),
+        lastDuckPriceForHatching: lastDuckPriceForHatching(),
+        totalFarmingPower: totalFarmingPower(),
+        totalNumberOfDucks: totalNumberOfDucks(),
+        numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
+        topDuck: topDuck(),
+        ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+        numberOfDucksBurnedToday: numberOfDucksBurnedToday(),
+        numberOfDucksSoldThiWeekToday: numberOfDucksSoldThiWeekToday(),
+      }).map(
+        ([key, promise]) =>
+          new Promise(async (r) => {
+            const result = await promise;
+            return r({ key, result });
+          })
+      )
+    )
+  ).reduce((acc, { key, result }) => {
+    acc[key] = result;
+    return acc;
+  }, {} as Record<string, any>);
+  return `
+  *Daily Ducks Stats:*
+  
+${data.lastPriceForEgg}
+
+${data.lastDuckPriceForHatching}
+
+${data.totalFarmingPower}
+
+${data.numberOfDucksBurnedToday}
+
+${data.totalNumberOfDucks}
+
+${data.numberOfDucksHatchedInTotalToday}
+
+${data.numberOfDucksSoldThiWeekToday}
+
+${data.ducksSalesWeeklyInTotal}
+
+${data.topDuck}`;
 };
