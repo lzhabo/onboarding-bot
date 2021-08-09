@@ -1,20 +1,11 @@
 import * as TelegramBot from "node-telegram-bot-api";
-import watcherService from "./services/watcherService";
-import { getDuckName } from "./utils";
-import * as commitCount from "git-commit-count";
 import axios from "axios";
 import * as Twit from "twit";
-import {
-  ducksSalesWeeklyInTotal,
-  getCurrentWavesRate,
-  lastDuckPriceForHatching,
-  lastPriceForEgg,
-  numberOfDucksBurnedToday,
-  numberOfDucksHatchedInTotalToday,
-  topDuck,
-  totalFarmingPower,
-  totalNumberOfDucks,
-} from "./services/dataService";
+import * as commitCount from "git-commit-count";
+import watcherService from "./services/watcherService";
+import { getDuckName } from "./utils";
+import { getAnalytics, getCurrentWavesRate } from "./services/dataService";
+const cron = require("node-cron");
 
 require("dotenv").config();
 
@@ -28,7 +19,15 @@ const twitter = new Twit({
 });
 
 telegram.onText(/\/start/, async ({ chat: { id } }) => {
-  await telegram.sendMessage(id, "I`m alive");
+  await telegram.sendMessage(
+    id,
+    "*Welcome to the Waves Ducks family!* \n" +
+      "\n" +
+      "[Waves Ducks](https://wavesducks.com/) is a game centered on collectable digital duck images, developed for active members of the Waves ecosystem. In this game, users acquire and collect digital images of ducks, which we call Waves Ducks\n" +
+      "\n" +
+      "To get daily game stats please click here 👉🏻 /stats !",
+    { parse_mode: "Markdown" }
+  );
 });
 telegram.onText(/\/id/, async ({ chat: { id } }) => {
   await telegram.sendMessage(id, String(id));
@@ -47,48 +46,8 @@ telegram.onText(/\/stats/, async ({ chat: { id } }) => {
       id,
       "Loading data from the blockchain – may take some time"
     );
-    const data: any = (
-      await Promise.all(
-        Object.entries({
-          lastPriceForEgg: lastPriceForEgg(),
-          lastDuckPriceForHatching: lastDuckPriceForHatching(),
-          totalNumberOfDucks: totalNumberOfDucks(),
-          numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
-          topDuck: topDuck(),
-          ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
-          numberOfDucksBurnedToday: numberOfDucksBurnedToday(),
-          totalFarmingPower: totalFarmingPower(),
-        }).map(
-          ([key, promise]) =>
-            new Promise(async (r) => {
-              const result = await promise;
-              return r({ key, result });
-            })
-        )
-      )
-    ).reduce((acc, { key, result }) => {
-      acc[key] = result;
-      return acc;
-    }, {} as Record<string, any>);
-    const msg = `
-  *Daily Ducks Stats:*
-  
-${data.lastPriceForEgg}
-
-${data.lastDuckPriceForHatching}
-
-${data.totalNumberOfDucks}
-
-${data.numberOfDucksHatchedInTotalToday}
-
-${data.ducksSalesWeeklyInTotal}
-
-${data.numberOfDucksBurnedToday}
-
-${data.totalFarmingPower}
-
-${data.topDuck}`;
-    await telegram.editMessageText(msg, {
+    const stats = await getAnalytics();
+    await telegram.editMessageText(stats, {
       parse_mode: "Markdown",
       chat_id: id,
       message_id: res.message_id,
@@ -111,6 +70,22 @@ const sendChanelMessage = async (id: string, msg: string) => {
 };
 
 const decimals = 1e8;
+
+cron.schedule("0 12,19 * * *", async () => {
+  const msg = await getAnalytics();
+  try {
+    await sendChanelMessage(process.env.RU_GROUP_ID, msg);
+    await sleep(2000);
+    await sendChanelMessage(process.env.EN_GROUP_ID, msg);
+    await sleep(2000);
+    await sendChanelMessage(process.env.ES_GROUP_ID, msg);
+    await sleep(2000);
+    await sendChanelMessage(process.env.AR_GROUP_ID, msg);
+    await sleep(2000);
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 (async () => {
   setInterval(async () => {

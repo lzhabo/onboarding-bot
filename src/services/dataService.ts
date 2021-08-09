@@ -40,7 +40,7 @@ export const lastPriceForEgg = async () => {
     100000000 /
     (Number.parseInt(data.data.A_asset_balance) / 100);
 
-  return `🥚 Last price for EGG: *${price.toFixed(2)} WAVES (${(
+  return `🥚 Last price for EGG: *${price.toFixed(2)} WAVES ($${(
     rate * price
   ).toFixed(2)})*`;
 };
@@ -168,4 +168,65 @@ export const topDuck = async () => {
   }](${link}) for last 24 hours sold for *${res.amount}* Waves *($${Math.round(
     res.inDollar
   )})*`;
+};
+
+export const numberOfDucksSoldThiWeekToday = async () => {
+  const { data }: any = await axios.get("https://duxplorer.com/auction/json");
+  const todayDate = Date.parse(moment().startOf("day").toString());
+  const thisWeekDate = Date.parse(moment().startOf("week").toString());
+
+  const twoWeekAgoDucks = data.auctionData.filter(
+    (d) => d.timestamp >= thisWeekDate
+  );
+  const todayDucks = twoWeekAgoDucks.filter(
+    (d) => d.timestamp >= todayDate
+  ).length;
+  return `🦆 > 💵 Number of ducks sold this week / today:  *${twoWeekAgoDucks.length} / ${todayDucks}*`;
+};
+
+export const getAnalytics = async () => {
+  const data: any = (
+    await Promise.all(
+      Object.entries({
+        lastPriceForEgg: lastPriceForEgg(),
+        lastDuckPriceForHatching: lastDuckPriceForHatching(),
+        totalFarmingPower: totalFarmingPower(),
+        totalNumberOfDucks: totalNumberOfDucks(),
+        numberOfDucksHatchedInTotalToday: numberOfDucksHatchedInTotalToday(),
+        topDuck: topDuck(),
+        ducksSalesWeeklyInTotal: ducksSalesWeeklyInTotal(),
+        numberOfDucksBurnedToday: numberOfDucksBurnedToday(),
+        numberOfDucksSoldThiWeekToday: numberOfDucksSoldThiWeekToday(),
+      }).map(
+        ([key, promise]) =>
+          new Promise(async (r) => {
+            const result = await promise;
+            return r({ key, result });
+          })
+      )
+    )
+  ).reduce((acc, { key, result }) => {
+    acc[key] = result;
+    return acc;
+  }, {} as Record<string, any>);
+  return `
+  *Daily Ducks Stats:*
+  
+${data.lastPriceForEgg}
+
+${data.lastDuckPriceForHatching}
+
+${data.totalFarmingPower}
+
+${data.numberOfDucksBurnedToday}
+
+${data.totalNumberOfDucks}
+
+${data.numberOfDucksHatchedInTotalToday}
+
+${data.numberOfDucksSoldThiWeekToday}
+
+${data.ducksSalesWeeklyInTotal}
+
+${data.topDuck}`;
 };
