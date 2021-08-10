@@ -82,6 +82,8 @@ cron.schedule("0 12,19 * * *", async () => {
     await sleep(2000);
     await sendChanelMessage(process.env.AR_GROUP_ID, msg);
     await sleep(2000);
+    await sendChanelMessage(process.env.PER_GROUP_ID, msg);
+    await sleep(2000);
   } catch (err) {
     console.error(err);
   }
@@ -133,6 +135,7 @@ cron.schedule("0 12,19 * * *", async () => {
       await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
       await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
+      await sendChanelMessage(process.env.PER_GROUP_ID, enMsg);
 
       const twitterErr = await new Promise((r) =>
         twitter.post("statuses/update", { status: twitterMsg }, (err) => r(err))
