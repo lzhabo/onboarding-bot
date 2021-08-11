@@ -62,7 +62,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const sendChanelMessage = async (id: string, msg: string) => {
   try {
-    await telegram.sendMessage(id, msg);
+    await telegram.sendMessage(id, msg, { parse_mode: "Markdown" });
     await sleep(2000);
   } catch (e) {
     console.log(`❌ failed to send message to the group ${id}`);
