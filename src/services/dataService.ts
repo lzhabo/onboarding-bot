@@ -50,7 +50,7 @@ export const totalFarmingPower = async () => {
     (acc, { farmingPower }) => acc + farmingPower,
     0
   );
-  return `💪 Total farming power: *${res} EGG*`;
+  return `💪 Total farming power: *${res}*`;
 };
 
 export const lastDuckPriceForHatching = async () => {
