@@ -1,23 +1,43 @@
 import * as TelegramBot from "node-telegram-bot-api";
 import { BUTTONS, messages } from "./library";
+import { STAGE, User } from "./models/User";
+import { getUserById } from "./controllers/userController";
 
 require("dotenv").config();
+const mongoose = require("mongoose");
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("✅  Connected to MongoDB");
+  })
+  .catch((e) => {
+    console.log(
+      `❌  MongoDB connection error. Please make sure MongoDB is running. ${e}`
+    );
+  });
+
+// const Cat = mongoose.model('Cat', { name: String });
 
 const telegram = new TelegramBot(process.env.TOKEN, { polling: true });
 const parse_mode = "Markdown";
-telegram.on("message", async (msg) => {
+
+telegram.onText(/\/start/, async ({ from, chat }) => {
+  const user = await getUserById(from.id);
+  user == null && (await User.create({ ...from, stage: STAGE.START }));
+  await telegram.sendMessage(chat.id, messages.introMsg, {
+    parse_mode,
+    reply_markup: {
+      keyboard: [[{ text: BUTTONS.START_TO_PLAY }]],
+    },
+  });
+});
+
+telegram.on("message", async ({ chat, from, text }) => {
+  if (from == null) return;
   try {
-    const chatId = msg.chat.id;
-    let res;
-    switch (msg.text) {
-      case "/start":
-        await telegram.sendMessage(chatId, messages.introMsg, {
-          parse_mode,
-          reply_markup: {
-            keyboard: [[{ text: BUTTONS.START_TO_PLAY }]],
-          },
-        });
-        break;
+    const chatId = chat.id;
+    const user = await getUserById(from.id);
+    switch (text) {
       case (BUTTONS.START_TO_PLAY, BUTTONS.CREATE_ACCOUNT):
         await telegram.sendMessage(chatId, messages.startToPlayMsg, {
           parse_mode,

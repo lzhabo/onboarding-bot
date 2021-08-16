@@ -1,9 +1,12 @@
-import { OnBoardingUser } from "../models/OnBoardingUser";
+import { User } from "../models/User";
 
 export const createUser = async (chatId: string) => {
-  const user = await OnBoardingUser.findOne((user) => user.chatId === chatId);
+  const user = await User.findOne((user) => user.chatId === chatId);
   if (user == null) {
-    const createdUser = await OnBoardingUser.create({ chatId });
+    const createdUser = await User.create({ chatId });
   }
   console.log(user);
 };
+
+export const getUserById = (id: number) =>
+  User.findOne((user) => (user ? user.id === id : false));
