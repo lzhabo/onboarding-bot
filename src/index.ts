@@ -1,151 +1,126 @@
 import * as TelegramBot from "node-telegram-bot-api";
-import axios from "axios";
-import * as Twit from "twit";
-import * as commitCount from "git-commit-count";
-import watcherService from "./services/watcherService";
-import { getDuckName } from "./utils";
-import { getAnalytics, getCurrentWavesRate } from "./services/dataService";
-const cron = require("node-cron");
+import { BUTTONS, messages } from "./library";
 
 require("dotenv").config();
 
 const telegram = new TelegramBot(process.env.TOKEN, { polling: true });
-
-const twitter = new Twit({
-  consumer_key: "kjzrtE8Wl5Q4yiR9AOgRYsBda",
-  consumer_secret: "Lrzc2iLzc2G8XXMldwNXe0NScCBWqjtrhiqrQTtty8wFGnVu7R",
-  access_token: "1411844553351467008-DoA7Icg0ohPc15mKWRGR545FJFM3mc",
-  access_token_secret: "AoBwxMaiTPt0GDuthAz3zuJLimK6SHUJQlzACQllwib1k",
-});
-
-telegram.onText(/\/start/, async ({ chat: { id } }) => {
-  await telegram.sendMessage(
-    id,
-    "*Welcome to the Waves Ducks family!* \n" +
-      "\n" +
-      "[Waves Ducks](https://wavesducks.com/) is a game centered on collectable digital duck images, developed for active members of the Waves ecosystem. In this game, users acquire and collect digital images of ducks, which we call Waves Ducks\n" +
-      "\n" +
-      "To get daily game stats please click here 👉🏻 /stats !",
-    { parse_mode: "Markdown" }
-  );
-});
-telegram.onText(/\/id/, async ({ chat: { id } }) => {
-  await telegram.sendMessage(id, String(id));
-});
-telegram.onText(/\/rate/, async ({ chat: { id } }) => {
-  const rate = await getCurrentWavesRate();
-  await telegram.sendMessage(id, rate);
-});
-telegram.onText(/\/version/, async ({ chat: { id } }) => {
-  await telegram.sendMessage(id, commitCount("chlenc/big-black-duck-bot/"));
-});
-
-telegram.onText(/\/stats/, async ({ chat: { id } }) => {
+const parse_mode = "Markdown";
+telegram.on("message", async (msg) => {
   try {
-    const res = await telegram.sendMessage(
-      id,
-      "Loading data from the blockchain – may take some time"
-    );
-    const stats = await getAnalytics();
-    await telegram.editMessageText(stats, {
-      parse_mode: "Markdown",
-      chat_id: id,
-      message_id: res.message_id,
-    });
+    const chatId = msg.chat.id;
+    let res;
+    switch (msg.text) {
+      case "/start":
+        await telegram.sendMessage(chatId, messages.introMsg, {
+          parse_mode,
+          reply_markup: {
+            keyboard: [[{ text: BUTTONS.START_TO_PLAY }]],
+          },
+        });
+        break;
+      case (BUTTONS.START_TO_PLAY, BUTTONS.CREATE_ACCOUNT):
+        await telegram.sendMessage(chatId, messages.startToPlayMsg, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.GAME_ARTIFACTS:
+        await telegram.sendMessage(chatId, messages.gameArtifacts, {
+          parse_mode,
+          reply_markup: {
+            keyboard: [
+              [{ text: BUTTONS.CREATE_ACCOUNT }],
+              [{ text: BUTTONS.GET_EGGS_FREE }],
+            ],
+          },
+        });
+        break;
+      case BUTTONS.GET_EGGS_FREE:
+        await telegram.sendMessage(chatId, messages.getEggFree, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.BUY_EGGS_CREDIT_CARD:
+        await telegram.sendMessage(chatId, messages.buyEggFromCard, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.GET_DUCK_FROM_EGG:
+        await telegram.sendMessage(chatId, messages.getDuckFromEgg, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.CROSS_DUCKS:
+        await telegram.sendMessage(chatId, messages.crossDucks, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.GENOTYPE_GENERATION:
+        await telegram.sendMessage(chatId, messages.genotypesAndGenerations, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      case BUTTONS.BUY_DUCK_MARKETPLACE:
+        await telegram.sendMessage(chatId, messages.buyDuckOnMarketplace, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        await sleep(5000);
+        await telegram.sendMessage(chatId, messages.passiveIncome, {
+          parse_mode,
+          reply_markup: {
+            keyboard: [[{ text: BUTTONS.FARMING_EGG }]],
+          },
+        });
+        break;
+      case BUTTONS.FARMING_EGG:
+        await telegram.sendMessage(chatId, messages.howFarmingWorks, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        await sleep(5000);
+        await telegram.sendMessage(chatId, messages.final, {
+          parse_mode,
+          reply_markup: {
+            remove_keyboard: true,
+          },
+        });
+        break;
+      default:
+        await telegram.sendMessage(chatId, "oooops....");
+    }
   } catch (e) {
-    await telegram.sendMessage(id, "ooops... something went wrong");
-    console.log(e.toString());
+    console.error(e);
   }
+});
+
+telegram.onText(/\/id/, async ({ chat: { id } }) => {
+  //todo add logic for checking link to wallet
+  //(Если человек прислал неправильный адрес кошелька, то ему сразу же высылается следующее сообщение):
+  // «Ты прислал неправильный адрес кошелька, скопируй адрес в правом верхнем углу, находясь залогиненным на https://wavesducks.com/»
+  //«Класс! Твой аккаунт зареган и для игры нужна внутриигровая валюта - EGG или яица.
+  // Яйца можно купить на бирже, купить с карты и получить, участвуя в специальных раундах.
 });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const sendChanelMessage = async (id: string, msg: string) => {
-  try {
-    await telegram.sendMessage(id, msg, { parse_mode: "Markdown" });
-    await sleep(2000);
-  } catch (e) {
-    console.log(`❌ failed to send message to the group ${id}`);
-  }
-};
-
-const decimals = 1e8;
-
-cron.schedule("0 12,19 * * *", async () => {
-  const msg = await getAnalytics();
-  try {
-    await sendChanelMessage(process.env.RU_GROUP_ID, msg);
-    await sleep(2000);
-    await sendChanelMessage(process.env.EN_GROUP_ID, msg);
-    await sleep(2000);
-    await sendChanelMessage(process.env.ES_GROUP_ID, msg);
-    await sleep(2000);
-    await sendChanelMessage(process.env.AR_GROUP_ID, msg);
-    await sleep(2000);
-    await sendChanelMessage(process.env.PER_GROUP_ID, msg);
-    await sleep(2000);
-  } catch (err) {
-    console.error(err);
-  }
-});
-
-(async () => {
-  setInterval(async () => {
-    const data = await watcherService.getUnsentData();
-    const rate = await getCurrentWavesRate();
-    const { data: dict } = await axios.get(
-      "https://wavesducks.com/api/v1/duck-names"
-    );
-    for (let i = 0; i < data.length; i++) {
-      const duck = data[i];
-
-      const name = getDuckName(duck.duckName, dict);
-      const wavesAmount = duck.amount / decimals;
-      const usdAmount = (wavesAmount * rate).toFixed(2);
-      let duckNumber = "-";
-      let duckCacheId = "";
-      try {
-        const { data: numberRawData } = await axios.get(
-          `
-    https://wavesducks.com/api/v0/achievements?ids=${duck.NFT}`
-        );
-        const start = new Date().getTime();
-        const {
-          data: { cacheId },
-        } = await axios.get(
-          `https://wavesducks.com/api/v1/preview/preload/duck/${duck.NFT}`
-        );
-        console.log(
-          `⏰ preload time for cacheId ${cacheId} and NFT ${duck.NFT} is ${
-            (new Date().getTime() - start) / 1000
-          } sec`
-        );
-        duckCacheId = cacheId;
-        duckNumber =
-          numberRawData[duck.NFT].n != null ? numberRawData[duck.NFT].n : "-";
-      } catch (e) {}
-      if (wavesAmount < 1000 / rate) continue;
-      const link = `https://wavesducks.com/duck/${duck.NFT}?cacheId=${duckCacheId}`;
-
-      const ruMsg = `Утка ${name} (#${duckNumber}) была приобретена за ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
-      const enMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n\n${link}`;
-      const twitterMsg = `Duck ${name} (#${duckNumber}) was purchased for ${wavesAmount} Waves ($${usdAmount} USD) \n#WavesDucks #nftgaming\n\n${link}`;
-
-      await sendChanelMessage(process.env.RU_GROUP_ID, ruMsg);
-      await sendChanelMessage(process.env.EN_GROUP_ID, enMsg);
-      await sendChanelMessage(process.env.ES_GROUP_ID, enMsg);
-      await sendChanelMessage(process.env.AR_GROUP_ID, enMsg);
-      await sendChanelMessage(process.env.PER_GROUP_ID, enMsg);
-
-      const twitterErr = await new Promise((r) =>
-        twitter.post("statuses/update", { status: twitterMsg }, (err) => r(err))
-      );
-      if (twitterErr) {
-        console.log(twitterErr);
-      }
-      await sleep(1000);
-    }
-  }, 60 * 1000);
-})();
-
-process.stdout.write("Bot has been started ✅ ");
